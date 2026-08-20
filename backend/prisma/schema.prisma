@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  DEVELOPER
+  CLIENT
+}
+
+enum ProjectStatus {
+  EN_ATTENTE
+  EN_COURS
+  EN_REVISION
+  LIVRE
+  MAINTENANCE
+  TERMINE
+}
+
+enum MessageType {
+  TEXTE
+  LIEN
+}
+
+enum LinkKind {
+  TEST
+  FINAL
+}
+
+enum ShowcaseType {
+  SAAS
+  MOBILE_APP
+  WEB
+  AUTRE
+}
+
+enum RequestStatus {
+  EN_ATTENTE
+  APPROUVEE
+  REJETEE
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String?
+  role      Role
+  company   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  clientProjects   Project[]      @relation("ClientProjects")
+  assignments      Assignment[]
+  messages         Message[]
+  invitations      Invitation[]
+  uploadedAssets   ProjectAsset[]
+  createdShowcases Showcase[]
+  dueDateRequestsMade     DueDateRequest[] @relation("DueDateRequestedBy")
+  dueDateRequestsReviewed DueDateRequest[] @relation("DueDateReviewedBy")
+}
+
+model Project {
+  id                String        @id @default(uuid())
+  name              String
+  description       String?
+  status            ProjectStatus @default(EN_COURS)
+  clientId          String
+  client            User          @relation("ClientProjects", fields: [clientId], references: [id])
+  dueDate           DateTime?
+  deliveredAt       DateTime?
+  maintenanceActive Boolean       @default(false)
+  readyToClose      Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+
+  assignments Assignment[]
+  messages    Message[]
+  assets      ProjectAsset[]
+  dueDateRequests DueDateRequest[]
+}
+
+model Assignment {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+  developerId String
+  developer   User     @relation(fields: [developerId], references: [id])
+  assignedAt  DateTime @default(now())
+
+  @@unique([projectId, developerId])
+}
+
+model Message {
+  id                String      @id @default(uuid())
+  projectId         String
+  project           Project     @relation(fields: [projectId], references: [id])
+  authorId          String
+  author            User        @relation(fields: [authorId], references: [id])
+  type              MessageType
+  isMockup          Boolean     @default(false)
+  content           String
+  linkUrl           String?
+  validated         Boolean?
+  validatedAt       DateTime?
+  validationComment String?
+  linkKind          LinkKind?
+  createdAt         DateTime    @default(now())
+
+  attachments Attachment[]
+}
+
+model Attachment {
+  id        String   @id @default(uuid())
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id])
+  filename  String
+  url       String
+  mimeType  String?
+  size      Int?
+  createdAt DateTime @default(now())
+}
+
+model Invitation {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  token     String    @unique
+  usedAt    DateTime?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model ProjectAsset {
+  id           String   @id @default(uuid())
+  projectId    String
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  filename     String
+  url          String
+  mimeType     String?
+  size         Int?
+  createdAt    DateTime @default(now())
+}
+
+// Vitrine des réalisations de l'agence (SaaS, apps mobiles, sites web...) — publiée par
+// l'admin, visible par tous les utilisateurs connectés (clients, développeurs, admins).
+model Showcase {
+  id          String       @id @default(uuid())
+  title       String
+  description String
+  type        ShowcaseType @default(AUTRE)
+  url         String?
+  imageUrl    String?
+  imageMime   String?
+  imageSize   Int?
+  published   Boolean      @default(true)
+  createdById String
+  createdBy   User         @relation(fields: [createdById], references: [id])
+  createdAt   DateTime     @default(now())
+}
+
+// Demande du client pour repousser/avancer l'échéance d'un projet, avec justification,
+// soumise à validation (ou rejet, avec justification) par l'admin.
+model DueDateRequest {
+  id              String        @id @default(uuid())
+  projectId       String
+  project         Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  requestedById   String
+  requestedBy     User          @relation("DueDateRequestedBy", fields: [requestedById], references: [id])
+  proposedDueDate DateTime
+  justification   String
+  status          RequestStatus @default(EN_ATTENTE)
+  reviewedById    String?
+  reviewedBy      User?         @relation("DueDateReviewedBy", fields: [reviewedById], references: [id])
+  reviewComment   String?
+  reviewedAt      DateTime?
+  createdAt       DateTime      @default(now())
+}
