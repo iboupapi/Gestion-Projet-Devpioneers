@@ -49,6 +49,12 @@ app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
+app.get("/", (req, res) => {
+  res.json({
+    status: "ok",
+    service: "DevPioneers API",
+  });
+});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
