@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
 import api from "../api/client";
-import socket from "../socket";
+import socket from "../api/socket";
 
 const AuthContext = createContext(null);
 
