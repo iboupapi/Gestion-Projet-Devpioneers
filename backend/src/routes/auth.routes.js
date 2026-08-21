@@ -41,11 +41,11 @@ router.post("/login", loginLimiter, async (req, res) => {
   }
   const token = signToken(user);
   res.cookie("dp_token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
-  });
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+});
   res.json({
     user: { id: user.id, name: user.name, email: user.email, role: user.role, company: user.company },
   });
@@ -53,7 +53,11 @@ router.post("/login", loginLimiter, async (req, res) => {
 
 // POST /api/auth/logout — efface le cookie de session
 router.post("/logout", (req, res) => {
-  res.clearCookie("dp_token");
+  res.clearCookie("dp_token", {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+});
   res.status(204).send();
 });
 
@@ -90,7 +94,7 @@ router.post("/invitations/:token/accept", invitationLimiter, async (req, res) =>
   res.cookie("dp_token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
   });
   res.json({
