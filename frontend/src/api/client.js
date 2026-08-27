@@ -7,15 +7,31 @@ const api = axios.create({
   withCredentials: true,
 });
 
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("dp_token");
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (
       err.response?.status === 401 &&
-      !err.config?.url?.includes("/auth/login")
+      !err.config?.url?.includes("/auth/login") &&
+      !err.config?.url?.includes("/auth/invitations")
     ) {
+      localStorage.removeItem("dp_token");
       localStorage.removeItem("dp_user");
-      window.location.href = "/login";
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
     }
 
     return Promise.reject(err);

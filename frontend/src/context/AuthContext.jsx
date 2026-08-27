@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import api from "../api/client";
 import socket from "../api/socket";
 
@@ -10,17 +10,27 @@ export function AuthProvider({ children }) {
     return raw ? JSON.parse(raw) : null;
   });
 
+  // Reconnecte le socket si l'utilisateur est déjà authentifié au chargement de la page
+  useEffect(() => {
+    if (user && localStorage.getItem("dp_token")) {
+      if (!socket.connected) {
+        socket.connect();
+      }
+    }
+  }, [user]);
+
   async function login(email, password) {
     const { data } = await api.post("/auth/login", {
       email,
       password,
     });
 
+    if (data.token) {
+      localStorage.setItem("dp_token", data.token);
+    }
     localStorage.setItem("dp_user", JSON.stringify(data.user));
     setUser(data.user);
 
-    // Maintenant que le cookie dp_token a été créé,
-    // on peut connecter Socket.IO.
     socket.connect();
 
     return data.user;
@@ -32,11 +42,12 @@ export function AuthProvider({ children }) {
       { password }
     );
 
+    if (data.token) {
+      localStorage.setItem("dp_token", data.token);
+    }
     localStorage.setItem("dp_user", JSON.stringify(data.user));
     setUser(data.user);
 
-    // Le backend crée également dp_token après
-    // l'acceptation de l'invitation.
     socket.connect();
 
     return data.user;
@@ -45,11 +56,12 @@ export function AuthProvider({ children }) {
   async function logout() {
     try {
       await api.post("/auth/logout");
+    } catch (err) {
+      console.warn("Erreur logout serveur:", err);
     } finally {
-      // Déconnecte Socket.IO avant de supprimer
-      // les informations locales de l'utilisateur.
       socket.disconnect();
 
+      localStorage.removeItem("dp_token");
       localStorage.removeItem("dp_user");
       setUser(null);
     }

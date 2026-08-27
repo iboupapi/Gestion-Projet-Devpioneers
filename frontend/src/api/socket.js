@@ -6,6 +6,9 @@ const SOCKET_URL =
 const socket = io(SOCKET_URL, {
   withCredentials: true,
   autoConnect: false,
+  auth: (cb) => {
+    cb({ token: localStorage.getItem("dp_token") });
+  },
 });
 
 socket.on("connect", () => {

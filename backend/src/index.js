@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
+const fs = require("fs");
 const path = require("path");
 const { parse: parseCookie } = require("cookie");
 
@@ -37,16 +38,34 @@ const app = express();
 
 const FRONTEND_URLS = (process.env.FRONTEND_URL || "http://localhost:5173")
   .split(",")
-  .map((url) => url.trim());
+  .map((url) => url.trim().replace(/\/$/, ""));
 
-app.use(cookieParser());
 app.use(cors({
-  origin: FRONTEND_URLS,
+  origin: (origin, callback) => {
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (FRONTEND_URLS.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.warn(`❌ Origine CORS refusée : ${origin}`);
+    return callback(new Error("Not allowed by CORS"));
+  },
   credentials: true,
 }));
 
+const uploadsDir = path.join(__dirname, "..", "uploads");
+
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log(`📁 Dossier uploads créé : ${uploadsDir}`);
+}
+
+app.use(cookieParser());
 app.use(express.json());
-app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
+app.use("/uploads", express.static(uploadsDir));
 
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 app.get("/", (req, res) => {
@@ -55,7 +74,6 @@ app.get("/", (req, res) => {
     service: "DevPioneers API",
   });
 });
-
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/projects", projectsRoutes);
@@ -79,22 +97,34 @@ const io = new Server(server, {
   },
 });
 
-// Authentifie chaque connexion websocket avec le même cookie httpOnly que les requêtes HTTP classiques
+// Authentifie chaque connexion websocket via auth token, en-tête Authorization ou cookie dp_token
 io.use(async (socket, next) => {
   try {
-    const rawCookie = socket.handshake.headers.cookie || "";
-    console.log("[socket auth] cookie reçu:", rawCookie || "(aucun cookie)");
-    const token = getCookieValue(rawCookie, "dp_token");
-    console.log("[socket auth] token dp_token présent:", token ? "oui" : "non");
+    const rawCookie = socket.handshake.headers?.cookie || "";
+    const cookieToken = getCookieValue(rawCookie, "dp_token");
+    const authHeader = socket.handshake.headers?.authorization;
+    const bearerToken = authHeader && authHeader.startsWith("Bearer ") ? authHeader.substring(7).trim() : null;
+    const handshakeToken = socket.handshake.auth?.token;
+
+    const token = handshakeToken || bearerToken || cookieToken;
+
     if (!token) return next(new Error("Authentification requise."));
-    const payload = verifyToken(token);
-    const user = await store.find("users", (u) => u.id === payload.sub);
+
+    let payload;
+    try {
+      payload = verifyToken(token);
+    } catch {
+      return next(new Error("Session invalide ou expirée."));
+    }
+
+    const user = await store.findById("users", payload.sub);
     if (!user || !user.isActive) return next(new Error("Compte introuvable ou désactivé."));
+
     socket.data.user = { id: user.id, role: user.role, name: user.name, email: user.email };
     next();
   } catch (err) {
     console.error("[socket auth] erreur détaillée:", err.message);
-    next(new Error("Session invalide ou expirée."));
+    next(new Error("Erreur authentification socket."));
   }
 });
 

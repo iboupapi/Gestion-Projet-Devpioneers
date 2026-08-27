@@ -54,6 +54,15 @@ async function filter(collection, predicate) {
   return rows.filter(predicate);
 }
 
+async function findById(collection, id) {
+  try {
+    return await client(collection).findUnique({ where: { id } });
+  } catch (err) {
+    const rows = await all(collection);
+    return rows.find((r) => r.id === id) || null;
+  }
+}
+
 async function insert(collection, record) {
   return client(collection).create({ data: record });
 }
@@ -75,4 +84,4 @@ async function remove(collection, id) {
   }
 }
 
-module.exports = { all, find, filter, insert, update, remove, prisma };
+module.exports = { all, find, findById, filter, insert, update, remove, prisma };

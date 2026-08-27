@@ -76,6 +76,7 @@ router.post("/login", loginLimiter, async (req, res) => {
     res.cookie("dp_token", token, cookieOptions);
 
     return res.json({
+      token,
       user: {
         id: user.id,
         name: user.name,
@@ -220,6 +221,7 @@ router.post(
       res.cookie("dp_token", token, cookieOptions);
 
       return res.json({
+        token,
         user: {
           id: user.id,
           name: user.name,
