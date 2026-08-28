@@ -22,8 +22,8 @@ router.get("/", requireRole("ADMIN"), async (req, res) => {
 // Crée un utilisateur + son invitation (lien pour définir le mot de passe), envoie l'email.
 // Réutilisé par la création de client/développeur et par la création d'admin.
 async function createInvitedUser({ name, email, role, company }) {
-  if (await store.find("users", (u) => u.email.toLowerCase() === email.toLowerCase())) {
-    const err = new Error("Un compte existe déjà avec cet email.");
+  if (await store.find("users", (u) => u.email.toLowerCase() === email.toLowerCase() && u.role === role)) {
+    const err = new Error(`Un compte ${role.toLowerCase()} existe déjà avec cet email.`);
     err.status = 409;
     throw err;
   }
@@ -105,9 +105,11 @@ router.patch("/:id", requireRole("ADMIN"), async (req, res) => {
   if (isActive === false && target.id === req.user.id) {
     return res.status(400).json({ error: "Vous ne pouvez pas désactiver votre propre compte." });
   }
-  if (email && email.toLowerCase() !== target.email.toLowerCase()) {
-    const existing = await store.find("users", (u) => u.email.toLowerCase() === email.toLowerCase());
-    if (existing) return res.status(409).json({ error: "Un autre compte utilise déjà cet email." });
+  const targetRole = role !== undefined ? role : target.role;
+  const targetEmail = email !== undefined ? email : target.email;
+  if (targetEmail.toLowerCase() !== target.email.toLowerCase() || targetRole !== target.role) {
+    const existing = await store.find("users", (u) => u.email.toLowerCase() === targetEmail.toLowerCase() && u.role === targetRole && u.id !== target.id);
+    if (existing) return res.status(409).json({ error: "Un compte avec cet email et ce rôle existe déjà." });
   }
   if (role && !["ADMIN", "DEVELOPER", "CLIENT"].includes(role)) {
     return res.status(400).json({ error: "Rôle invalide." });

@@ -22,16 +22,24 @@ export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectAccounts, setSelectAccounts] = useState(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      const user = await login(email, password);
+      const result = await login(email, password, role);
+      if (result.requiresRoleSelection) {
+        setSelectAccounts(result.accounts);
+        setLoading(false);
+        return;
+      }
+      const user = result;
       if (user.role === "ADMIN") navigate("/admin");
       else if (user.role === "DEVELOPER") navigate("/dev");
       else navigate("/client");
@@ -39,6 +47,22 @@ export default function Login() {
       setError(err.response?.data?.error || "Erreur de connexion.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function selectAccountRole(chosenRole) {
+    setError("");
+    setLoading(true);
+    try {
+      const user = await login(email, password, chosenRole);
+      if (user.role === "ADMIN") navigate("/admin");
+      else if (user.role === "DEVELOPER") navigate("/dev");
+      else navigate("/client");
+    } catch (err) {
+      setError(err.response?.data?.error || "Erreur de connexion.");
+    } finally {
+      setLoading(false);
+      setSelectAccounts(null);
     }
   }
 
@@ -71,66 +95,120 @@ export default function Login() {
       </div>
 
       <div className="flex-1 flex items-center justify-center bg-white px-4 py-10 lg:py-0">
-        <form onSubmit={handleSubmit} className="w-full max-w-[380px] p-7 sm:p-9 rounded-2xl border border-navy-100 shadow-sm">
-          <h2 className="font-display text-xl font-bold mb-1">Connexion</h2>
-          <p className="text-navy-400 text-[13px] mb-6">Accédez à votre espace de suivi de projet.</p>
-
-          {error && (
-            <div className="mb-4 text-[13px] text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              {error}
-            </div>
-          )}
-
-          <div className="mb-4">
-            <label className="block text-[12.5px] text-navy-400 font-medium mb-1.5">Adresse email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="vous@entreprise.sn"
-              className="w-full px-3.5 py-3 rounded-lg border border-navy-100 text-sm focus:outline-none focus:border-violet-accent"
-            />
-          </div>
-          <div className="mb-5">
-            <label className="block text-[12.5px] text-navy-400 font-medium mb-1.5">Mot de passe</label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-3.5 py-3 pr-11 rounded-lg border border-navy-100 text-sm focus:outline-none focus:border-violet-accent"
-              />
+        <div className="w-full max-w-[380px] p-7 sm:p-9 rounded-2xl border border-navy-100 shadow-sm">
+          {selectAccounts ? (
+            <div>
+              <h2 className="font-display text-xl font-bold mb-1">Choisir un compte</h2>
+              <p className="text-navy-400 text-[13px] mb-5">
+                Plusieurs comptes sont associés à cet email. Sélectionnez celui auquel vous souhaitez vous connecter :
+              </p>
+              {error && (
+                <div className="mb-4 text-[13px] text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  {error}
+                </div>
+              )}
+              <div className="space-y-2.5">
+                {selectAccounts.map((acc) => (
+                  <button
+                    key={acc.id}
+                    onClick={() => selectAccountRole(acc.role)}
+                    className="w-full text-left p-3.5 rounded-xl border border-navy-100 hover:border-violet-accent hover:bg-navy-50/50 transition flex items-center justify-between"
+                  >
+                    <div>
+                      <div className="text-[13.5px] font-semibold">{acc.name}</div>
+                      <div className="text-[12px] text-navy-400">
+                        {acc.role === "ADMIN" ? "Administrateur" : acc.role === "DEVELOPER" ? "Développeur" : "Client"}
+                        {acc.company ? ` · ${acc.company}` : ""}
+                      </div>
+                    </div>
+                    <span className="text-violet-accent font-semibold text-[13px]">Sélectionner →</span>
+                  </button>
+                ))}
+              </div>
               <button
                 type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-navy-300 hover:text-navy-600 transition"
-                tabIndex={-1}
-                title={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                onClick={() => setSelectAccounts(null)}
+                className="mt-5 w-full text-center text-[12.5px] text-navy-400 hover:text-navy-700 underline"
               >
-                <EyeIcon visible={showPassword} />
+                Retour à la connexion
               </button>
             </div>
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-lg bg-gradient-to-br from-violet-accent to-sky-accent text-white font-semibold text-[14px] shadow-md hover:opacity-90 transition disabled:opacity-60"
-          >
-            {loading ? "Connexion..." : "Accéder à mon espace"}
-          </button>
+          ) : (
+            <form onSubmit={handleSubmit}>
+              <h2 className="font-display text-xl font-bold mb-1">Connexion</h2>
+              <p className="text-navy-400 text-[13px] mb-6">Accédez à votre espace de suivi de projet.</p>
 
-          <div className="mt-5 p-3.5 rounded-lg bg-sky-50 border border-sky-100 text-[12px] text-navy-400 leading-relaxed">
-            <b className="text-sky-700">Première connexion ?</b> Utilisez le lien d'invitation reçu par
-            email pour définir votre mot de passe.
-          </div>
+              {error && (
+                <div className="mb-4 text-[13px] text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  {error}
+                </div>
+              )}
 
-          <div className="mt-5 text-center text-[11.5px] text-navy-400">
-            Démo : <Link to="/invitation/demo" className="underline">définir un mot de passe via invitation</Link>
-          </div>
-        </form>
+              <div className="mb-4">
+                <label className="block text-[12.5px] text-navy-400 font-medium mb-1.5">Adresse email</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="vous@entreprise.sn"
+                  className="w-full px-3.5 py-3 rounded-lg border border-navy-100 text-sm focus:outline-none focus:border-violet-accent"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-[12.5px] text-navy-400 font-medium mb-1.5">Mot de passe</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full px-3.5 py-3 pr-11 rounded-lg border border-navy-100 text-sm focus:outline-none focus:border-violet-accent"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-navy-300 hover:text-navy-600 transition"
+                    tabIndex={-1}
+                    title={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                  >
+                    <EyeIcon visible={showPassword} />
+                  </button>
+                </div>
+              </div>
+              <div className="mb-5">
+                <label className="block text-[12.5px] text-navy-400 font-medium mb-1.5">Type de compte (optionnel)</label>
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-navy-100 text-sm bg-white focus:outline-none focus:border-violet-accent"
+                >
+                  <option value="">Automatique</option>
+                  <option value="ADMIN">Administrateur</option>
+                  <option value="DEVELOPER">Développeur</option>
+                  <option value="CLIENT">Client</option>
+                </select>
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 rounded-lg bg-gradient-to-br from-violet-accent to-sky-accent text-white font-semibold text-[14px] shadow-md hover:opacity-90 transition disabled:opacity-60"
+              >
+                {loading ? "Connexion..." : "Accéder à mon espace"}
+              </button>
+
+              <div className="mt-5 p-3.5 rounded-lg bg-sky-50 border border-sky-100 text-[12px] text-navy-400 leading-relaxed">
+                <b className="text-sky-700">Première connexion ?</b> Utilisez le lien d'invitation reçu par
+                email pour définir votre mot de passe.
+              </div>
+
+              <div className="mt-5 text-center text-[11.5px] text-navy-400">
+                Démo : <Link to="/invitation/demo" className="underline">définir un mot de passe via invitation</Link>
+              </div>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -38,7 +38,7 @@ const cookieOptions = {
 // POST /api/auth/login
 router.post("/login", loginLimiter, async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({
@@ -46,31 +46,41 @@ router.post("/login", loginLimiter, async (req, res) => {
       });
     }
 
-    const user = await store.find(
+    const matchingUsers = await store.filter(
       "users",
-      (u) => u.email.toLowerCase() === email.toLowerCase()
+      (u) => u.email.toLowerCase() === email.toLowerCase() && u.password && u.isActive
     );
 
-    if (!user || !user.password) {
+    const filteredUsers = role ? matchingUsers.filter((u) => u.role === role) : matchingUsers;
+
+    const validUsers = [];
+    for (const u of filteredUsers) {
+      const valid = await bcrypt.compare(password, u.password);
+      if (valid) {
+        validUsers.push(u);
+      }
+    }
+
+    if (validUsers.length === 0) {
       return res.status(401).json({
         error: "Identifiants incorrects ou compte non activé.",
       });
     }
 
-    if (!user.isActive) {
-      return res.status(403).json({
-        error: "Ce compte a été désactivé.",
+    if (validUsers.length > 1 && !role) {
+      return res.json({
+        requiresRoleSelection: true,
+        accounts: validUsers.map((u) => ({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          role: u.role,
+          company: u.company,
+        })),
       });
     }
 
-    const valid = await bcrypt.compare(password, user.password);
-
-    if (!valid) {
-      return res.status(401).json({
-        error: "Identifiants incorrects.",
-      });
-    }
-
+    const user = validUsers[0];
     const token = signToken(user);
 
     res.cookie("dp_token", token, cookieOptions);

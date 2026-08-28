@@ -19,11 +19,16 @@ export function AuthProvider({ children }) {
     }
   }, [user]);
 
-  async function login(email, password) {
+  async function login(email, password, role) {
     const { data } = await api.post("/auth/login", {
       email,
       password,
+      role,
     });
+
+    if (data.requiresRoleSelection) {
+      return data;
+    }
 
     if (data.token) {
       localStorage.setItem("dp_token", data.token);

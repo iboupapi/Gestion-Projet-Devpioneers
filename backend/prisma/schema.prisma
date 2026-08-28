@@ -48,7 +48,7 @@ enum RequestStatus {
 model User {
   id        String   @id @default(uuid())
   name      String
-  email     String   @unique
+  email     String
   password  String?
   role      Role
   company   String?
@@ -63,6 +63,8 @@ model User {
   createdShowcases Showcase[]
   dueDateRequestsMade     DueDateRequest[] @relation("DueDateRequestedBy")
   dueDateRequestsReviewed DueDateRequest[] @relation("DueDateReviewedBy")
+
+  @@unique([email, role])
 }
 
 model Project {
