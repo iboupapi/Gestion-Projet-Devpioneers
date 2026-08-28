@@ -90,28 +90,28 @@ export default function AdminDashboard() {
       title="Vue d'ensemble"
       subtitle="Tous les projets, clients et développeurs de l'agence."
       actions={
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 justify-end">
           <button
             onClick={() => setShowAdminModal(true)}
-            className="px-4 py-2.5 rounded-lg border border-navy-100 text-[13px] font-semibold hover:border-violet-accent transition"
+            className="px-3.5 py-2 rounded-lg border border-navy-100 text-[12.5px] font-semibold hover:border-violet-accent transition whitespace-nowrap"
           >
             + Créer un admin
           </button>
           <button
             onClick={() => setShowDeveloperModal(true)}
-            className="px-4 py-2.5 rounded-lg border border-navy-100 text-[13px] font-semibold hover:border-violet-accent transition"
+            className="px-3.5 py-2 rounded-lg border border-navy-100 text-[12.5px] font-semibold hover:border-violet-accent transition whitespace-nowrap"
           >
             + Ajouter un développeur
           </button>
           <button
             onClick={() => setShowClientModal(true)}
-            className="px-4 py-2.5 rounded-lg border border-navy-100 text-[13px] font-semibold hover:border-violet-accent transition"
+            className="px-3.5 py-2 rounded-lg border border-navy-100 text-[12.5px] font-semibold hover:border-violet-accent transition whitespace-nowrap"
           >
             + Inviter un client
           </button>
           <button
             onClick={() => setShowProjectModal(true)}
-            className="px-4 py-2.5 rounded-lg bg-gradient-to-br from-violet-accent to-sky-accent text-white text-[13px] font-semibold shadow-sm hover:opacity-90 transition"
+            className="px-3.5 py-2 rounded-lg bg-gradient-to-br from-violet-accent to-sky-accent text-white text-[12.5px] font-semibold shadow-sm hover:opacity-90 transition whitespace-nowrap"
           >
             + Nouveau projet
           </button>
@@ -119,7 +119,7 @@ export default function AdminDashboard() {
       }
     >
       {pendingClosures.map((p) => (
-        <div key={p.id} className="flex items-center justify-between gap-4 rounded-2xl px-5 py-4 mb-4 border border-amber-200 bg-amber-50">
+        <div key={p.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl px-5 py-4 mb-4 border border-amber-200 bg-amber-50">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2.2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
@@ -133,7 +133,7 @@ export default function AdminDashboard() {
           </div>
           <button
             onClick={() => closeProject(p.id)}
-            className="shrink-0 px-4 py-2 rounded-lg bg-gradient-to-br from-violet-accent to-sky-accent text-white text-[12.5px] font-semibold hover:opacity-90"
+            className="w-full sm:w-auto shrink-0 px-4 py-2 rounded-lg bg-gradient-to-br from-violet-accent to-sky-accent text-white text-[12.5px] font-semibold hover:opacity-90"
           >
             Valider la clôture
           </button>
@@ -142,7 +142,7 @@ export default function AdminDashboard() {
 
       {dueDateRequests.map((r) => (
         <div key={r.id} className="rounded-2xl px-5 py-4 mb-4 border border-sky-200 bg-sky-50">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-sky-100 flex items-center justify-center shrink-0">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0284C7" strokeWidth="2.2">
@@ -159,7 +159,7 @@ export default function AdminDashboard() {
               </div>
             </div>
             {reviewingRequest !== r.id && (
-              <div className="flex gap-2 shrink-0">
+              <div className="flex gap-2 shrink-0 flex-wrap">
                 <button
                   onClick={() => reviewDueDateRequest(r, true)}
                   className="px-4 py-2 rounded-lg bg-gradient-to-br from-violet-accent to-sky-accent text-white text-[12.5px] font-semibold hover:opacity-90"
@@ -184,119 +184,123 @@ export default function AdminDashboard() {
         </div>
       ))}
 
-      <div className="grid grid-cols-4 gap-4 mb-7">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
         {stats.map((s) => (
-          <div key={s.label} className="bg-white border border-navy-100 rounded-2xl p-5">
-            <div className="text-[11.5px] uppercase tracking-wide text-navy-400">{s.label}</div>
-            <div className="font-display font-bold text-[26px] mt-1.5">{s.value}</div>
+          <div key={s.label} className="bg-white border border-navy-100 rounded-2xl p-4 sm:p-5">
+            <div className="text-[11px] sm:text-[11.5px] uppercase tracking-wide text-navy-400">{s.label}</div>
+            <div className="font-display font-bold text-[22px] sm:text-[26px] mt-1.5">{s.value}</div>
           </div>
         ))}
       </div>
 
       <h3 className="text-[13px] uppercase tracking-wide text-navy-400 font-semibold mb-3">Projets</h3>
       <div className="bg-white border border-navy-100 rounded-2xl overflow-hidden mb-8">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-navy-900 text-white">
-              <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Projet</th>
-              <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Client</th>
-              <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Développeurs</th>
-              <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Statut</th>
-              <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Échéance</th>
-              <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {projects.map((p) => (
-              <tr key={p.id} className="border-b border-navy-50 last:border-b-0">
-                <td className="px-5 py-4 text-[13.5px] font-semibold">{p.name}</td>
-                <td className="px-5 py-4 text-[13.5px]">{p.client?.company || p.client?.name}</td>
-                <td className="px-5 py-4 text-[13.5px]">{p.developers.map((d) => d.name).join(", ") || "—"}</td>
-                <td className="px-5 py-4"><StatusBadge status={p.status} /></td>
-                <td className="px-5 py-4 text-[13px] font-mono text-navy-400">
-                  {p.dueDate ? new Date(p.dueDate).toLocaleDateString("fr-FR") : "—"}
-                </td>
-                <td className="px-5 py-4 text-right">
-                  <button
-                    onClick={() => setAssigningProject(p)}
-                    className="px-3 py-1.5 rounded-lg border border-navy-100 text-[12px] font-semibold hover:border-violet-accent transition"
-                  >
-                    Assigner
-                  </button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[650px]">
+            <thead>
+              <tr className="bg-navy-900 text-white">
+                <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Projet</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Client</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Développeurs</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Statut</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Échéance</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold"></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {projects.map((p) => (
+                <tr key={p.id} className="border-b border-navy-50 last:border-b-0">
+                  <td className="px-5 py-4 text-[13.5px] font-semibold">{p.name}</td>
+                  <td className="px-5 py-4 text-[13.5px]">{p.client?.company || p.client?.name}</td>
+                  <td className="px-5 py-4 text-[13.5px]">{p.developers.map((d) => d.name).join(", ") || "—"}</td>
+                  <td className="px-5 py-4"><StatusBadge status={p.status} /></td>
+                  <td className="px-5 py-4 text-[13px] font-mono text-navy-400">
+                    {p.dueDate ? new Date(p.dueDate).toLocaleDateString("fr-FR") : "—"}
+                  </td>
+                  <td className="px-5 py-4 text-right">
+                    <button
+                      onClick={() => setAssigningProject(p)}
+                      className="px-3 py-1.5 rounded-lg border border-navy-100 text-[12px] font-semibold hover:border-violet-accent transition"
+                    >
+                      Assigner
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <h3 className="text-[13px] uppercase tracking-wide text-navy-400 font-semibold mb-3">
         Utilisateurs ({allUsers.length})
       </h3>
       <div className="bg-white border border-navy-100 rounded-2xl overflow-hidden">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-navy-900 text-white">
-              <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Nom</th>
-              <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Email</th>
-              <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Rôle</th>
-              <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Entreprise</th>
-              <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Statut</th>
-              <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {allUsers.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-5 py-6 text-center text-navy-400 text-[13px]">
-                  Aucun client ou développeur pour l'instant.
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[700px]">
+            <thead>
+              <tr className="bg-navy-900 text-white">
+                <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Nom</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Email</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Rôle</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Entreprise</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold">Statut</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase tracking-wide font-semibold"></th>
               </tr>
-            )}
-            {allUsers.map((u) => (
-              <tr key={u.id} className="border-b border-navy-50 last:border-b-0">
-                <td className="px-5 py-4 text-[13.5px] font-semibold">{u.name}</td>
-                <td className="px-5 py-4 text-[13px] text-navy-500">{u.email}</td>
-                <td className="px-5 py-4">
-                  <span className="text-[11.5px] font-semibold px-2.5 py-1 rounded-full bg-navy-50 text-navy-600 border border-navy-100">
-                    {ROLE_LABEL[u.role]}
-                  </span>
-                </td>
-                <td className="px-5 py-4 text-[13px] text-navy-500">{u.company || "—"}</td>
-                <td className="px-5 py-4">
-                  <button
-                    onClick={() => toggleActive(u)}
-                    className={`text-[11.5px] font-semibold px-2.5 py-1 rounded-full border transition ${
-                      u.isActive
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                        : "bg-navy-50 text-navy-400 border-navy-100 hover:bg-navy-100"
-                    }`}
-                    title="Cliquer pour changer le statut"
-                  >
-                    {u.isActive ? "Actif" : "Inactif"}
-                  </button>
-                </td>
-                <td className="px-5 py-4 text-right whitespace-nowrap">
-                  <button
-                    onClick={() => setEditingUser(u)}
-                    className="px-3 py-1.5 rounded-lg border border-navy-100 text-[12px] font-semibold hover:border-violet-accent transition mr-2"
-                  >
-                    Modifier
-                  </button>
-                  <button
-                    onClick={() => {
-                      setDeletingUser(u);
-                      setDeleteError("");
-                    }}
-                    className="px-3 py-1.5 rounded-lg border border-navy-100 text-[12px] font-semibold text-rose-600 hover:border-rose-300 hover:bg-rose-50 transition"
-                  >
-                    Supprimer
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {allUsers.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-5 py-6 text-center text-navy-400 text-[13px]">
+                    Aucun client ou développeur pour l'instant.
+                  </td>
+                </tr>
+              )}
+              {allUsers.map((u) => (
+                <tr key={u.id} className="border-b border-navy-50 last:border-b-0">
+                  <td className="px-5 py-4 text-[13.5px] font-semibold">{u.name}</td>
+                  <td className="px-5 py-4 text-[13px] text-navy-500">{u.email}</td>
+                  <td className="px-5 py-4">
+                    <span className="text-[11.5px] font-semibold px-2.5 py-1 rounded-full bg-navy-50 text-navy-600 border border-navy-100">
+                      {ROLE_LABEL[u.role]}
+                    </span>
+                  </td>
+                  <td className="px-5 py-4 text-[13px] text-navy-500">{u.company || "—"}</td>
+                  <td className="px-5 py-4">
+                    <button
+                      onClick={() => toggleActive(u)}
+                      className={`text-[11.5px] font-semibold px-2.5 py-1 rounded-full border transition ${
+                        u.isActive
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                          : "bg-navy-50 text-navy-400 border-navy-100 hover:bg-navy-100"
+                      }`}
+                      title="Cliquer pour changer le statut"
+                    >
+                      {u.isActive ? "Actif" : "Inactif"}
+                    </button>
+                  </td>
+                  <td className="px-5 py-4 text-right whitespace-nowrap">
+                    <button
+                      onClick={() => setEditingUser(u)}
+                      className="px-3 py-1.5 rounded-lg border border-navy-100 text-[12px] font-semibold hover:border-violet-accent transition mr-2"
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      onClick={() => {
+                        setDeletingUser(u);
+                        setDeleteError("");
+                      }}
+                      className="px-3 py-1.5 rounded-lg border border-navy-100 text-[12px] font-semibold text-rose-600 hover:border-rose-300 hover:bg-rose-50 transition"
+                    >
+                      Supprimer
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {showProjectModal && (
